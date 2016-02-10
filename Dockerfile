@@ -15,8 +15,8 @@ RUN ln -s /opt/solr/dist/ /solr/apps/solr/home/
 USER solr
 
 EXPOSE 8983
-# WORKDIR /opt/solr/example
+WORKDIR /opt/solr/example
 
-# COPY conf/* /opt/solr/example/solr/collection1/conf/
+COPY conf/* /opt/solr/example/solr/collection1/conf/
 
 CMD ["java", "-jar", "start.jar"]
