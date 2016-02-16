@@ -1,23 +1,20 @@
-FROM    java:openjdk-8-jre
-MAINTAINER  Benedict Aluan "benedict@boost.co.nz"
+FROM base/archlinux
 
-ENV SOLR_VERSION 4.10.4
+RUN pacman-key --populate archlinux && pacman-key --refresh-keys && pacman --sync --refresh --noconfirm --noprogressbar --quiet && pacman --sync --refresh --sysupgrade --noconfirm --noprogressbar --quiet && pacman-db-upgrade && pacman --sync --noconfirm --noprogressbar --quiet jre7-openjdk-headless unzip lsof ca-certificates-java
+
+ENV SOLR_VERSION 4.1.0
 ENV SOLR solr-$SOLR_VERSION
-ENV SOLR_USER solr
 
-RUN export DEBIAN_FRONTEND=noninteractive && \
-  apt-get update && \
-  apt-get -y install lsof && \
-  groupadd -r $SOLR_USER && \
-  useradd -r -g $SOLR_USER $SOLR_USER && \
-  mkdir -p /opt && \
-  wget -nv --output-document=/opt/$SOLR.tgz http://archive.apache.org/dist/lucene/solr/$SOLR_VERSION/$SOLR.tgz && \
-  tar -C /opt --extract --file /opt/$SOLR.tgz && \
-  rm /opt/$SOLR.tgz && \
-  ln -s /opt/$SOLR /opt/solr && \
-  chown -R $SOLR_USER:$SOLR_USER /opt/solr /opt/$SOLR
+RUN curl --retry 3 http://archive.apache.org/dist/lucene/solr/$SOLR_VERSION/$SOLR.tgz | tar -C /opt --extract --gzip
+RUN mv /opt/$SOLR /opt/solr
+RUN useradd --home-dir /opt/solr --comment "Solr Server" solr
+RUN chown -R solr:solr /opt/solr/example
+RUN mkdir -p /solr/apps/solr/home
+RUN ln -s /opt/solr/dist/ /solr/apps/solr/home/
+USER solr
 
 EXPOSE 8983
-WORKDIR /opt/solr
-USER $SOLR_USER
-CMD ["/bin/bash", "-c", "/opt/solr/bin/solr -f"]
+WORKDIR /opt/solr/example
+COPY conf/* /opt/solr/example/solr/collection1/conf/
+
+CMD ["java", "-jar", "start.jar"]
