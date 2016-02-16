@@ -1,5 +1,6 @@
 FROM base/archlinux
 
+RUN pacman -S archlinux-keyring
 RUN pacman-key --populate archlinux 
 RUN pacman-key --refresh-keys 
 RUN pacman --sync --refresh --noconfirm --noprogressbar --quiet
